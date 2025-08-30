@@ -10,30 +10,33 @@ class DeployService:
     def __init__(self, app_config: AppConfig):
         self.app_config = app_config
         self.app_params: AppParams | None = None
-        self.temp_dir = Path("~/.tmp")
-        self.target_dir = Path("output/target")
 
     def deploy(self, app_params: AppParams):
         """Deploy our release artifact to the target directory."""
 
         self.app_params = app_params
 
-        # Hard code artifact name for now
-        artifact_source_path = (self.temp_dir / "release.7z").expanduser()
+        # Create the location where we will download the deployment artifact
+        self.app_config.projects[0].download_directory.mkdir(parents=True, exist_ok=True)
+        artifact_source_path = (self.app_config.projects[0].download_directory / "release.7z").expanduser()
 
         # Make sure directory exists, clear if necessary
-        self.target_dir.mkdir(parents=True, exist_ok=True)
+        self.app_config.websites_base_path.mkdir(parents=True, exist_ok=True)
 
         # Define a regex pattern for files to preserve
         # ^ -> start of string, $ -> end of string
         # re.IGNORECASE makes it case-insensitive
         preserve_pattern = re.compile(r"^Web\.config$", re.IGNORECASE)
-        self.__clear_directory(self.target_dir, preserve_pattern)
+        target_path = self.app_config.websites_base_path / self.app_config.projects[0].websites[0]
+        target_path.mkdir(parents=True, exist_ok=True)
 
-        self.extract_artifact(artifact_source_path, self.target_dir)
+        # Clear directory, preserving any files that need to stay (i.e. Web.config)
+        self.__clear_directory(target_path, preserve_pattern)
+
+        self.__extract_artifact(artifact_source_path, target_path)
 
     @staticmethod
-    def extract_artifact(source_path: Path, destination_path: Path) -> None:
+    def __extract_artifact(source_path: Path, destination_path: Path) -> None:
         """Extract a deployment artifact from source_path to the destination_path."""
 
         with py7zr.SevenZipFile(source_path, mode='r') as archive:

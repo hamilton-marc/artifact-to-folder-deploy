@@ -1,3 +1,4 @@
+from pathlib import Path
 from typing import List
 
 from pydantic import BaseModel, Field, ValidationError
@@ -29,8 +30,8 @@ class ProjectConfig(BaseModel):
 
     name: str
     repo: str
-    workflow_filename: str
-    download_directory: str
+    workflow_filename: Path
+    download_directory: Path
     websites: List[str]
     allowed_branches: List[str]
 
@@ -40,8 +41,8 @@ class AppConfig(BaseModel):
     Validated parameters for the application configuration
     """
 
-    websites_base_path: str
-    temp_extract_path: str
+    websites_base_path: Path
+    temp_extract_path: Path
     github_config: GitHubConfig
     projects: List[ProjectConfig]
 
