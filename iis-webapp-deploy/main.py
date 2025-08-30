@@ -20,17 +20,16 @@ class IisAspNetDeployApp:
 
         self.config_service = config_service
         self.deploy_service : DeployService | None = None
-        self.config = None
         self.app_params = None
 
     def run(self, argv:List[str]) -> None:
         """Execute the deployment"""
 
         # Load the configuration from config.yaml
-        self.config = self.config_service.load_config()
+        config = self.config_service.load_config()
         print("Application Configuration:")
         print("--------------------")
-        print(Pretty(self.config))
+        print(Pretty(config))
         print()
 
         # Process the command line arguments
@@ -41,7 +40,7 @@ class IisAspNetDeployApp:
         print()
 
         # Provision the deployment service using the configuration
-        self.deploy_service = DeployService(self.config)
+        self.deploy_service = DeployService(self.config_service)
 
         # Execute the deployment
         self.deploy_service.deploy(self.app_params)
@@ -71,9 +70,9 @@ class CommandLineInterface:
         parser = argparse.ArgumentParser(description="IIS ASP.NET Deployment App")
 
         parser.add_argument(
-            "--app",
+            "--repo",
             type=str,
-            help="Application to deploy (must be pre-configured)"
+            help="GitHub repository of application to deploy (must be pre-configured)"
         )
         parser.add_argument(
             "--env",

@@ -3,36 +3,44 @@ import shutil
 import py7zr
 from pathlib import Path
 
+from config import ConfigService
 from models import AppParams, AppConfig
 
 
 class DeployService:
-    def __init__(self, app_config: AppConfig):
-        self.app_config = app_config
-        self.app_params: AppParams | None = None
+    def __init__(self, config_service: ConfigService):
+        self.config_service = config_service
 
-    def deploy(self, app_params: AppParams):
+    def deploy(self, app_params: AppParams) -> None:
         """Deploy our release artifact to the target directory."""
 
-        self.app_params = app_params
+        # Get the configuration for the project to be deployed
+        target_project = self.config_service.projects[app_params.repo]
 
         # Create the location where we will download the deployment artifact
-        self.app_config.projects[0].download_directory.mkdir(parents=True, exist_ok=True)
-        artifact_source_path = (self.app_config.projects[0].download_directory / "release.7z").expanduser()
+        target_project.download_directory.mkdir(parents=True, exist_ok=True)
+        artifact_source_path = (target_project.download_directory / "release.7z").expanduser()
 
         # Make sure directory exists, clear if necessary
-        self.app_config.websites_base_path.mkdir(parents=True, exist_ok=True)
+        self.config_service.app_config.websites_base_path.mkdir(parents=True, exist_ok=True)
 
-        # Define a regex pattern for files to preserve
-        # ^ -> start of string, $ -> end of string
-        # re.IGNORECASE makes it case-insensitive
-        preserve_pattern = re.compile(r"^Web\.config$", re.IGNORECASE)
-        target_path = self.app_config.websites_base_path / self.app_config.projects[0].websites[0]
+        for site in target_project.websites:
+            self.deploy_to_site(artifact_source_path, site, target_project.preserve_regex)
+
+    def deploy_to_site(self, artifact_source_path: Path, site: str, preserve_regex: str = None) -> None:
+        keep_pattern = None
+
+        # If specified, do not delete files that match the preserve_regex pattern
+        if preserve_regex:
+            keep_pattern = re.compile(preserve_regex, re.IGNORECASE)
+
+        target_path = self.config_service.app_config.websites_base_path / site
         target_path.mkdir(parents=True, exist_ok=True)
 
         # Clear directory, preserving any files that need to stay (i.e. Web.config)
-        self.__clear_directory(target_path, preserve_pattern)
+        self.__clear_directory(target_path, keep_pattern)
 
+        # Unzip the release artifact to the site directory
         self.__extract_artifact(artifact_source_path, target_path)
 
     @staticmethod
@@ -43,15 +51,18 @@ class DeployService:
             archive.extractall(path=destination_path)
 
     @staticmethod
-    def __clear_directory(path: Path, keep_pattern=None) -> None:
+    def __clear_directory(path: Path, preserve_pattern=None) -> None:
         for entry in path.iterdir():
-            if keep_pattern and keep_pattern.match(entry.name):
+            # Do not delete files which match the preserve_pattern regex
+            if preserve_pattern and preserve_pattern.match(entry.name):
                 continue
 
             try:
                 if entry.is_file():
+                    # this performs a "delete" for a file
                     entry.unlink()
                 elif entry.is_dir():
+                    # recursively removed the directory
                     shutil.rmtree(entry)
             except PermissionError as e:
                 print(f"Unable to delete {entry}: {e}")

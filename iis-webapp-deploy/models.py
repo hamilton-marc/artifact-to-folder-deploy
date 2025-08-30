@@ -8,7 +8,7 @@ class AppParams(BaseModel):
     Validated parameters for the application
     """
 
-    app: str = Field(description="Application to deploy")
+    repo: str = Field(description="GitHub repository name of application to deploy")
     env: str = Field(description="The target environment to deploy to")
     run_id: str = Field(default="latest", description="Run id from GithHub Actions to Deploy")
 
@@ -34,6 +34,9 @@ class ProjectConfig(BaseModel):
     download_directory: Path
     websites: List[str]
     allowed_branches: List[str]
+
+    # when clearing target directory, keep files which match this pattern
+    preserve_regex: str
 
 
 class AppConfig(BaseModel):
