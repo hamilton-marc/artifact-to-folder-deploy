@@ -1,57 +1,60 @@
 import re
 import shutil
-import py7zr
 from pathlib import Path
 
+import py7zr
+
 from config import ConfigService
-from models import AppParams, AppConfig
+from models import AppParams
 
 
 class DeployService:
     def __init__(self, config_service: ConfigService):
-        self.config_service = config_service
+        self._config_service = config_service
 
     def deploy(self, app_params: AppParams) -> None:
-        """Deploy our release artifact to the target directory."""
+        """public: Deploy our release artifact to the target directory."""
 
         # Get the configuration for the project to be deployed
-        target_project = self.config_service.projects[app_params.repo]
+        target_project = self._config_service.projects[app_params.repo]
 
         # Create the location where we will download the deployment artifact
         target_project.download_directory.mkdir(parents=True, exist_ok=True)
         artifact_source_path = (target_project.download_directory / "release.7z").expanduser()
 
         # Make sure directory exists, clear if necessary
-        self.config_service.app_config.websites_base_path.mkdir(parents=True, exist_ok=True)
+        self._config_service.app_config.websites_base_path.mkdir(parents=True, exist_ok=True)
 
         for site in target_project.websites:
-            self.deploy_to_site(artifact_source_path, site, target_project.preserve_regex)
+            self._deploy_to_site(artifact_source_path, site, target_project.preserve_regex)
 
-    def deploy_to_site(self, artifact_source_path: Path, site: str, preserve_regex: str = None) -> None:
+    def _deploy_to_site(self, artifact_source_path: Path, site: str, preserve_regex: str = None) -> None:
+        """private: Deploy a given artifact to a given site."""
         keep_pattern = None
 
         # If specified, do not delete files that match the preserve_regex pattern
         if preserve_regex:
             keep_pattern = re.compile(preserve_regex, re.IGNORECASE)
 
-        target_path = self.config_service.app_config.websites_base_path / site
+        target_path = self._config_service.app_config.websites_base_path / site
         target_path.mkdir(parents=True, exist_ok=True)
 
         # Clear directory, preserving any files that need to stay (i.e. Web.config)
-        self.__clear_directory(target_path, keep_pattern)
+        self._clear_directory(target_path, keep_pattern)
 
         # Unzip the release artifact to the site directory
-        self.__extract_artifact(artifact_source_path, target_path)
+        self._extract_artifact(artifact_source_path, target_path)
 
     @staticmethod
-    def __extract_artifact(source_path: Path, destination_path: Path) -> None:
-        """Extract a deployment artifact from source_path to the destination_path."""
+    def _extract_artifact(source_path: Path, destination_path: Path) -> None:
+        """private: Extract a deployment artifact from source_path to the destination_path."""
 
         with py7zr.SevenZipFile(source_path, mode='r') as archive:
             archive.extractall(path=destination_path)
 
     @staticmethod
-    def __clear_directory(path: Path, preserve_pattern=None) -> None:
+    def _clear_directory(path: Path, preserve_pattern=None) -> None:
+        """private: Clear the directory and all its contents. Preserve a pattern if provided."""
         for entry in path.iterdir():
             # Do not delete files which match the preserve_pattern regex
             if preserve_pattern and preserve_pattern.match(entry.name):

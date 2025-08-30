@@ -18,32 +18,31 @@ class IisAspNetDeployApp:
     def __init__(self, config_service: ConfigService) -> None:
         """Set up internal member variables, accept injected ConfigService"""
 
-        self.config_service = config_service
-        self.deploy_service : DeployService | None = None
-        self.app_params = None
+        self._config_service = config_service
+        self._deploy_service : DeployService | None = None
 
     def run(self, argv:List[str]) -> None:
         """Execute the deployment"""
 
         # Load the configuration from config.yaml
-        config = self.config_service.load_config()
+        config = self._config_service.load_config()
         print("Application Configuration:")
         print("--------------------")
         print(Pretty(config))
         print()
 
         # Process the command line arguments
-        self.app_params = self.__parse_app_params(argv)
+        app_params = self.__parse_app_params(argv)
         print("Command Line Parameters:")
         print("--------------------")
-        print(Pretty(self.app_params))
+        print(Pretty(app_params))
         print()
 
         # Provision the deployment service using the configuration
-        self.deploy_service = DeployService(self.config_service)
+        self._deploy_service = DeployService(self._config_service)
 
         # Execute the deployment
-        self.deploy_service.deploy(self.app_params)
+        self._deploy_service.deploy(app_params)
 
 
     @staticmethod
@@ -75,9 +74,9 @@ class CommandLineInterface:
             help="GitHub repository of application to deploy (must be pre-configured)"
         )
         parser.add_argument(
-            "--env",
+            "--site",
             type=str,
-            help="Target environment to deploy to"
+            help="Target site to deploy to"
         )
         parser.add_argument(
             "--runid",

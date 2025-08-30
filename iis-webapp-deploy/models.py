@@ -1,7 +1,8 @@
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 
-from pydantic import BaseModel, Field, ValidationError
+from pydantic import BaseModel, Field
+
 
 class AppParams(BaseModel):
     """
@@ -9,7 +10,7 @@ class AppParams(BaseModel):
     """
 
     repo: str = Field(description="GitHub repository name of application to deploy")
-    env: str = Field(description="The target environment to deploy to")
+    site: Optional[str] = Field(default=None, description="The target IIS site to deploy to")
     run_id: str = Field(default="latest", description="Run id from GithHub Actions to Deploy")
 
 
@@ -19,7 +20,6 @@ class GitHubConfig(BaseModel):
     """
 
     base_url: str
-    token: str
     owner: str
 
 
