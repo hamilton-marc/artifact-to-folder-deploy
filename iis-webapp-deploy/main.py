@@ -1,39 +1,37 @@
 import sys
 import argparse
-from typing import List, Optional
-from abc import ABC, abstractmethod
+from typing import List
 from pydantic import BaseModel, Field, ValidationError
 
-class AppParams(BaseModel):
-    """
-    Validated parameters for the application
-    """
+from models import AppParams
+from deploy import DeployService
 
-    app: str = Field(description="Application to deploy")
-    env: str = Field(description="The target environment to deploy to")
-    run_id: str = Field(default="latest", description="Run id from GithHub Actions to Deploy")
 
-class Application:
-    """
-    Base application class with boilerplate implementation to collect command line args
-    """
-
-    def __init__(self, args: argparse.Namespace):
-        """Constructor. Set up internal member variables"""
-        self.args = args
-
-    @abstractmethod
-    def run(self) -> None:
-        """Derived classes must implement a run method."""
-        pass
-
-class IisAspNetDeployApp(Application):
+class IisAspNetDeployApp:
     """
     Main application class which provides the ability to deploy an ASP.NET application to IIS
     """
 
-    def run(self):
-        pass
+    def __init__(self) -> None:
+        self.deploy_service: DeployService = DeployService()
+
+    def run(self, argv:List[str]) -> None:
+        self.app_params = self.__parse_app_params(argv)
+
+        self.deploy_service.deploy(self.app_params)
+
+
+    @staticmethod
+    def __parse_app_params(argv:List[str]) -> AppParams:
+        try:
+            app_params: AppParams = CommandLineInterface.parse_args(argv)
+            return app_params
+
+        except ValidationError as e:
+            print("[ERROR] Invalid command line arguments:")
+            print (e)
+            raise
+
 
 class CommandLineInterface:
     """
@@ -70,31 +68,25 @@ class CommandLineInterface:
 
         return app_params
 
-def main(argv: Optional[List[str]] = None) -> int:
-    """
-    Main entry point for command line interface
-    """
+
+def main(argv) -> int:
+    """Main entry point for command line interface"""
 
     if argv is None:
         argv = sys.argv[1:]
 
-    try:
-        app_params: AppParams = CommandLineInterface.parse_args(argv)
+    iis_deploy_app = IisAspNetDeployApp()
 
-    except ValidationError as e:
-        print("[ERROR] Invalid arguments:")
-        print(e)
-        return 2
+    try:
+        iis_deploy_app.run(argv)
 
     except Exception as e:
-        print(f"[ERROR] Unexpected error: {e}")
+        print("An error occurred attempting to process the deployment:")
+        print (e)
         return 1
 
-    return 0
 
 if __name__ == "__main__":
-    ret_code = main()
+    ret_code = main(argv=sys.argv[1:])
 
     sys.exit(ret_code)
-
-
