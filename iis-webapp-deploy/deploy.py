@@ -3,11 +3,12 @@ import shutil
 import py7zr
 from pathlib import Path
 
-from models import AppParams
+from models import AppParams, AppConfig
 
 
 class DeployService:
-    def __init__(self):
+    def __init__(self, app_config: AppConfig):
+        self.app_config = app_config
         self.app_params: AppParams | None = None
         self.temp_dir = Path("~/.tmp")
         self.target_dir = Path("output/target")

@@ -2,9 +2,12 @@ import sys
 import argparse
 from typing import List
 from pydantic import BaseModel, Field, ValidationError
+from rich import print
+from rich.pretty import Pretty
 
-from models import AppParams
+from config import ConfigService
 from deploy import DeployService
+from models import AppParams, AppConfig
 
 
 class IisAspNetDeployApp:
@@ -12,12 +15,35 @@ class IisAspNetDeployApp:
     Main application class which provides the ability to deploy an ASP.NET application to IIS
     """
 
-    def __init__(self) -> None:
-        self.deploy_service: DeployService = DeployService()
+    def __init__(self, config_service: ConfigService) -> None:
+        """Set up internal member variables, accept injected ConfigService"""
+
+        self.config_service = config_service
+        self.deploy_service : DeployService | None = None
+        self.config = None
+        self.app_params = None
 
     def run(self, argv:List[str]) -> None:
-        self.app_params = self.__parse_app_params(argv)
+        """Execute the deployment"""
 
+        # Load the configuration from config.yaml
+        self.config = self.config_service.load_config()
+        print("Application Configuration:")
+        print("--------------------")
+        print(Pretty(self.config))
+        print()
+
+        # Process the command line arguments
+        self.app_params = self.__parse_app_params(argv)
+        print("Command Line Parameters:")
+        print("--------------------")
+        print(Pretty(self.app_params))
+        print()
+
+        # Provision the deployment service using the configuration
+        self.deploy_service = DeployService(self.config)
+
+        # Execute the deployment
         self.deploy_service.deploy(self.app_params)
 
 
@@ -75,7 +101,8 @@ def main(argv) -> int:
     if argv is None:
         argv = sys.argv[1:]
 
-    iis_deploy_app = IisAspNetDeployApp()
+    config_service = ConfigService()
+    iis_deploy_app = IisAspNetDeployApp(config_service)
 
     try:
         iis_deploy_app.run(argv)
