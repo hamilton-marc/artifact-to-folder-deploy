@@ -14,22 +14,15 @@ class AppParams(BaseModel):
     run_id: str = Field(default="latest", description="Run id from GithHub Actions to Deploy")
 
 
-class GitHubConfig(BaseModel):
-    """
-    Base configuration settings for the GitHub API
-    """
-
-    base_url: str
-    owner: str
-
-
 class ProjectConfig(BaseModel):
     """
     Base configuration settings for the project
     """
 
     name: str
+    owner: str
     repo: str
+    workflow_filename: str
     artifact_filename: str
     download_directory: Path
     websites: List[str]
@@ -46,6 +39,6 @@ class AppConfig(BaseModel):
 
     websites_base_path: Path
     temp_extract_path: Path
-    github_config: GitHubConfig
+    github_token: Optional[str] = Field(default=None, description="A GitHub token to authenticate with")
     projects: List[ProjectConfig]
 

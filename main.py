@@ -7,6 +7,7 @@ from rich.pretty import Pretty
 
 from config_service import ConfigService
 from deploy_service import DeployService
+from github_service import GitHubService
 from models import AppParams, AppConfig
 
 

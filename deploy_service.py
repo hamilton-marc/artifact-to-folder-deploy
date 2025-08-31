@@ -5,6 +5,7 @@ from pathlib import Path
 import py7zr
 
 from config_service import ConfigService
+from github_service import GitHubService
 from models import AppParams
 
 
@@ -25,11 +26,16 @@ class DeployService:
         # Make sure directory exists, clear if necessary
         self._config_service.app_config.websites_base_path.mkdir(parents=True, exist_ok=True)
 
+        # Download the deployment artifact from GitHub
+        github_service = GitHubService(target_project, self._config_service.app_config.github_token)
+        github_service.download_latest_artifact()
+
         for site in target_project.websites:
             self._deploy_to_site(artifact_source_path, site, target_project.preserve_regex)
 
     def _deploy_to_site(self, artifact_source_path: Path, site: str, preserve_regex: str = None) -> None:
         """private: Deploy a given artifact to a given site."""
+
         keep_pattern = None
 
         # If specified, do not delete files that match the preserve_regex pattern

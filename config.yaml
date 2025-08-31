@@ -3,14 +3,12 @@
 websites_base_path: "./test_env/sites"
 temp_extract_path: "./test_env/tmp/temp_extract"
 
-github_config:
-  base_url: "https://api.github.com"
-  owner: "hamilton-marc"
-
 projects:
   - repo: "bowling-score-api-ts"
+    owner: "hamilton-marc"
     name: "Bowling Score API"
-    artifact_filename: "bowling-score-ci-cd.yml"
+    workflow_filename: "build_deployment_artifact.yml"
+    artifact_filename: "release.7z"
     download_directory: "./test_env/artifacts/bowling-score-api-ts"
     websites:
       - "bowlingapi-dev.unionhills.dev"
