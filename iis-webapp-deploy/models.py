@@ -30,7 +30,7 @@ class ProjectConfig(BaseModel):
 
     name: str
     repo: str
-    workflow_filename: Path
+    artifact_filename: str
     download_directory: Path
     websites: List[str]
     allowed_branches: List[str]
