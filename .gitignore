@@ -217,3 +217,4 @@ __marimo__/
 
 # Application output during debugging
 work/
+test_env/
