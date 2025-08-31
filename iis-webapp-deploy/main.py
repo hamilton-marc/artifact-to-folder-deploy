@@ -5,8 +5,8 @@ from pydantic import BaseModel, Field, ValidationError
 from rich import print
 from rich.pretty import Pretty
 
-from config import ConfigService
-from deploy import DeployService
+from config_service import ConfigService
+from deploy_service import DeployService
 from models import AppParams, AppConfig
 
 

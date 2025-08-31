@@ -4,7 +4,7 @@ from pathlib import Path
 
 import py7zr
 
-from config import ConfigService
+from config_service import ConfigService
 from models import AppParams
 
 
@@ -20,7 +20,7 @@ class DeployService:
 
         # Create the location where we will download the deployment artifact
         target_project.download_directory.mkdir(parents=True, exist_ok=True)
-        artifact_source_path = (target_project.download_directory / "release.7z").expanduser()
+        artifact_source_path = (target_project.download_directory / target_project.artifact_filename).expanduser()
 
         # Make sure directory exists, clear if necessary
         self._config_service.app_config.websites_base_path.mkdir(parents=True, exist_ok=True)

@@ -1,0 +1,33 @@
+name: Deploy Bowling API
+
+on:
+  workflow_dispatch:   # <-- this makes it manual only
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Download deployment artifact
+        uses: Legit-Labs/action-download-artifact@v2
+        with:
+          workflow: https://github.com/hamilton-marc/bowling-score-api-ts/blob/main/.github/workflows/build_deployment_artifact.yml
+          artifact-name: bowling-score-api-artifact
+          path: ./test_env/artifacts/bowling-score-api-ts
+
+      - name: Simulated deploy to IIS
+        run: |
+          python ./iis-webapp-deploy/main.py --repo bowling-score-api-ts

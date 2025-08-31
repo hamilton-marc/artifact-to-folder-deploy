@@ -1,7 +1,7 @@
 # config.yaml
 
-websites_base_path: "work/sites"
-temp_extract_path: "work/tmp/temp_extract"
+websites_base_path: "./test_env/sites"
+temp_extract_path: "./test_env/tmp/temp_extract"
 
 github_config:
   base_url: "https://api.github.com"
@@ -10,8 +10,8 @@ github_config:
 projects:
   - repo: "bowling-score-api-ts"
     name: "Bowling Score API"
-    workflow_filename: "bowling-score-ci-cd.yml"
-    download_directory: "work/artifacts/bowling-score-api-ts"
+    artifact_filename: "bowling-score-ci-cd.yml"
+    download_directory: "./test_env/artifacts/bowling-score-api-ts"
     websites:
       - "bowlingapi-dev.unionhills.dev"
       - "bowlingapi-qa.unionhills.dev"
