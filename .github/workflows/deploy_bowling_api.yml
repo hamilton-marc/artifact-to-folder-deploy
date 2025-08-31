@@ -30,4 +30,4 @@ jobs:
 
       - name: Simulated deploy to IIS
         run: |
-          python ./iis-webapp-deploy/main.py --repo bowling-score-api-ts
+          python ./main.py --repo bowling-score-api-ts
