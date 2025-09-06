@@ -61,12 +61,12 @@ projects:
 
 ## Environment Variables
 
-GITHUB_TOKEN should be set in your environment or a local .env (not committed).
+`GITHUB_TOKEN` should be set in your environment or a local .env (not committed).
 Minimum scopes:
 
-Public repos: actions:read
+**Public repos**: actions:read
 
-Private repos: repo, actions:read
+**Private repos**: repo, actions:read
 
 Example `.env`:
 
